@@ -22,4 +22,17 @@ describe('effect', () => {
     expect(num).toBe(11)
     expect(doubleNum).toBe(20)
   })
+
+  it("should return runner when call effect", () => {
+    let a = 1
+    const runner = effect(() => {
+      a++
+      return 'hello effect runner'
+    })
+    expect(a).toBe(2)
+
+    const r = runner()
+    expect(a).toBe(3)
+    expect(r).toBe('hello effect runner')
+  })
 })
