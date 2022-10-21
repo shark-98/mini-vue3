@@ -1,4 +1,4 @@
-import { effect } from "../effect"
+import { effect, stop } from "../effect"
 import { reactive } from "../reactive"
 
 describe('effect', () => {
@@ -69,5 +69,51 @@ describe('effect', () => {
     obj.a++
     expect(x).toBe(2)
     expect(scheduler).toHaveBeenCalledTimes(2)
+  })
+
+  it('stop', () => {
+    let res = 0
+    const obj = reactive({ a: 1 })
+
+    const runner = effect(() => {
+      res = obj.a
+    })
+    expect(res).toBe(1)
+
+
+    obj.a = 10
+    expect(res).toBe(10)
+
+    stop(runner)
+    obj.a = 100
+    expect(res).toBe(10)
+
+    runner()
+    expect(res).toBe(100)
+  })
+
+  it('onStop', () => {
+    let res = 0
+    const obj = reactive({ a: 1 })
+    const onStop = jest.fn()
+    const runner = effect(
+      () => { res = obj.a },
+      { onStop }
+    )
+    expect(res).toBe(1)
+
+
+    obj.a = 10
+    expect(res).toBe(10)
+    expect(onStop).not.toHaveBeenCalled()
+
+    stop(runner)
+    obj.a = 100
+    expect(res).toBe(10)
+    expect(onStop).toBeCalledTimes(1)
+
+    runner()
+    expect(res).toBe(100)
+    expect(onStop).toBeCalledTimes(1)
   })
 })

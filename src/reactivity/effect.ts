@@ -1,5 +1,10 @@
+import { extend } from "../shared"
+
 class ReactiveEffect {
   private _fn
+  deps: Array<any> = []
+  active: boolean = true
+  onStop?: () => void
 
   constructor(fn: Function, public scheduler?: Function) {
     this._fn = fn
@@ -9,10 +14,27 @@ class ReactiveEffect {
     activeEffect = this
     return this._fn()
   }
-}
-let activeEffect: ReactiveEffect
 
+  stop() {
+    if (this.active) {
+      cleanupEffect(this)
+
+      this.onStop?.()
+
+      this.active = false
+    }
+  }
+}
+
+const cleanupEffect = (effect: ReactiveEffect) => {
+  effect.deps.forEach((dep) => {
+    dep.delete(effect)
+  })
+}
+
+let activeEffect: ReactiveEffect
 const targetMap = new Map()
+
 export const track = (target: any, key: any) => {
   let targetDep = targetMap.get(target)
   if (!targetDep) {
@@ -26,7 +48,11 @@ export const track = (target: any, key: any) => {
     targetDep.set(key, deps)
   }
 
-  deps.add(activeEffect)
+  if (activeEffect) {
+    deps.add(activeEffect)
+    activeEffect.deps.push(deps)
+  }
+
 }
 export const trigger = (target: any, key: any) => {
   const targetDep = targetMap.get(target)
@@ -42,6 +68,13 @@ export const trigger = (target: any, key: any) => {
 
 export const effect = (fn: Function, options: any = {}) => {
   const _effect = new ReactiveEffect(fn, options.scheduler)
+  extend(_effect, options)
   _effect.run()
-  return _effect.run.bind(_effect)
+
+  const runner: any = _effect.run.bind(_effect)
+  runner._effect = _effect
+  return runner
+}
+export const stop = (runner: any) => {
+  runner._effect.stop()
 }
