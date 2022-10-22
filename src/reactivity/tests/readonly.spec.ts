@@ -1,4 +1,4 @@
-import { reactive, readonly } from "../reactive";
+import { isReadonly, reactive, readonly } from "../reactive";
 
 describe('readonly', () => {
   it('happy path', () => {
@@ -8,6 +8,9 @@ describe('readonly', () => {
     expect(readonlyObj).not.toBe(obj)
     expect(readonlyObj.a).toBe(1)
     expect(readonlyObj.b).toBe(2)
+
+    expect(isReadonly(readonlyObj)).toBe(true)
+    expect(isReadonly(obj)).toBe(false)
   })
 
   it('not set', () => {

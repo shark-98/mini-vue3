@@ -11,3 +11,15 @@ export const reactive = (row: any) => {
 export const readonly = (row: any) => {
   return createReactiveObject(row, readonlyHandler);
 }
+
+export const enum ReactiveFlags {
+  IS_REACTIVE = '__v_isReactive',
+  IS_READONLY = '__v_isReadonly',
+}
+
+export const isReactive = (row: any) => {
+  return !!row[ReactiveFlags.IS_REACTIVE]
+}
+export const isReadonly = (row: any) => {
+  return !!row[ReactiveFlags.IS_READONLY]
+}
