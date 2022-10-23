@@ -87,9 +87,11 @@ describe('effect', () => {
     stop(runner)
     obj.a = 100
     expect(res).toBe(10)
+    obj.a++
+    expect(res).toBe(10)
 
     runner()
-    expect(res).toBe(100)
+    expect(res).toBe(101)
   })
 
   it('onStop', () => {

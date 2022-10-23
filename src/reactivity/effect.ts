@@ -1,5 +1,9 @@
 import { extend } from "../shared"
 
+let activeEffect: ReactiveEffect
+let shouldTrack: boolean = false
+const targetMap = new Map()
+
 class ReactiveEffect {
   private _fn
   deps: Array<any> = []
@@ -11,8 +15,18 @@ class ReactiveEffect {
   }
 
   run() {
+    if (!this.active) {
+      return this._fn()
+    }
+
+    // 应该收集
+    shouldTrack = true
     activeEffect = this
-    return this._fn()
+    const res = this._fn()
+    // 重置
+    shouldTrack = false
+
+    return res
   }
 
   stop() {
@@ -22,6 +36,7 @@ class ReactiveEffect {
       this.onStop?.()
 
       this.active = false
+      shouldTrack = false
     }
   }
 }
@@ -30,12 +45,18 @@ const cleanupEffect = (effect: ReactiveEffect) => {
   effect.deps.forEach((dep) => {
     dep.delete(effect)
   })
+
+  // 把 effect.deps 清空
+  effect.deps.length = 0
 }
 
-let activeEffect: ReactiveEffect
-const targetMap = new Map()
+const isTracking = () => {
+  return shouldTrack && activeEffect !== undefined
+}
 
 export const track = (target: any, key: any) => {
+  if (!isTracking()) return
+
   let targetDep = targetMap.get(target)
   if (!targetDep) {
     targetDep = new Map()
@@ -48,11 +69,11 @@ export const track = (target: any, key: any) => {
     targetDep.set(key, deps)
   }
 
-  if (activeEffect) {
-    deps.add(activeEffect)
-    activeEffect.deps.push(deps)
-  }
+  // 看看 dep 之前有没有添加过，添加过的话 那么就不添加了
+  if (deps.has(activeEffect)) return
 
+  deps.add(activeEffect)
+  activeEffect.deps.push(deps)
 }
 export const trigger = (target: any, key: any) => {
   const targetDep = targetMap.get(target)
