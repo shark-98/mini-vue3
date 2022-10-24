@@ -50,7 +50,7 @@ const cleanupEffect = (effect: ReactiveEffect) => {
   effect.deps.length = 0
 }
 
-const isTracking = () => {
+export const isTracking = () => {
   return shouldTrack && activeEffect !== undefined
 }
 
@@ -69,6 +69,9 @@ export const track = (target: any, key: any) => {
     targetDep.set(key, deps)
   }
 
+  trackEffect(deps)
+}
+export const trackEffect = (deps: any) => {
   // 看看 dep 之前有没有添加过，添加过的话 那么就不添加了
   if (deps.has(activeEffect)) return
 
@@ -78,6 +81,9 @@ export const track = (target: any, key: any) => {
 export const trigger = (target: any, key: any) => {
   const targetDep = targetMap.get(target)
   const deps = targetDep.get(key)
+  triggerEffect(deps)
+}
+export const triggerEffect = (deps: any) => {
   for (const dep of deps) {
     if (dep.scheduler) {
       dep.scheduler()
