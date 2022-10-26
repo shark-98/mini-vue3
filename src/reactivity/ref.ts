@@ -7,10 +7,12 @@ class RefImpl {
   private _value: any
   private _dep: any
   private _rawValue: any
+  private __v_isRef: boolean
   constructor(value: any) {
     this._rawValue = value
     this._value = convert(value)
     this._dep = new Set()
+    this.__v_isRef = true
   }
 
   get value() {
@@ -38,4 +40,12 @@ const trackRefValue = (ref: any) => {
 
 export const ref = (value: any) => {
   return new RefImpl(value)
+}
+
+export const isRef = (ref: any) => {
+  return !!ref.__v_isRef
+}
+
+export const unRef = (ref: any) => {
+  return isRef(ref) ? ref.value : ref
 }
