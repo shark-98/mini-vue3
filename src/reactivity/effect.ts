@@ -4,7 +4,7 @@ let activeEffect: ReactiveEffect
 let shouldTrack: boolean = false
 const targetMap = new Map()
 
-class ReactiveEffect {
+export class ReactiveEffect {
   private _fn
   deps: Array<any> = []
   active: boolean = true
