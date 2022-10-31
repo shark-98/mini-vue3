@@ -6,6 +6,11 @@ export function render(vnode: any, container: rootContainerType) {
 }
 
 function patch(vnode: any, container: rootContainerType) {
+
+  // TODO:
+  // processElement(vnode, container)
+
+
   processComponent(vnode, container)
 }
 
