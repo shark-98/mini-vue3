@@ -1,4 +1,4 @@
-import { rootContainerType } from "../types"
+import { rootContainerType } from "../types/index"
 import { render } from "./renderer"
 import { createVNode } from "./vnode"
 

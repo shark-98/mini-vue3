@@ -2,8 +2,8 @@
   "name": "mini-vue3",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/guide-mini-vue.cjs.js",
-  "module": "lib/guide-mini-vue.esm.js",
+  "main": "lib/mini-vue.cjs.js",
+  "module": "lib/mini-vue.esm.js",
   "license": "ISC",
   "scripts": {
     "test": "jest",
