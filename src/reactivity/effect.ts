@@ -1,4 +1,5 @@
-import { extend } from "../shared"
+import { extend } from "../shared/index"
+import { anyObjectType, effectDepsType } from "../types/index"
 
 let activeEffect: ReactiveEffect
 let shouldTrack: boolean = false
@@ -54,7 +55,7 @@ export const isTracking = () => {
   return shouldTrack && activeEffect !== undefined
 }
 
-export const track = (target: any, key: any) => {
+export const track = (target: anyObjectType, key: string) => {
   if (!isTracking()) return
 
   let targetDep = targetMap.get(target)
@@ -71,19 +72,19 @@ export const track = (target: any, key: any) => {
 
   trackEffect(deps)
 }
-export const trackEffect = (deps: any) => {
+export const trackEffect = (deps: effectDepsType) => {
   // 看看 dep 之前有没有添加过，添加过的话 那么就不添加了
   if (deps.has(activeEffect)) return
 
   deps.add(activeEffect)
   activeEffect.deps.push(deps)
 }
-export const trigger = (target: any, key: any) => {
+export const trigger = (target: anyObjectType, key: string) => {
   const targetDep = targetMap.get(target)
   const deps = targetDep.get(key)
   triggerEffect(deps)
 }
-export const triggerEffect = (deps: any) => {
+export const triggerEffect = (deps: effectDepsType) => {
   for (const dep of deps) {
     if (dep.scheduler) {
       dep.scheduler()
@@ -93,7 +94,7 @@ export const triggerEffect = (deps: any) => {
   }
 }
 
-export const effect = (fn: Function, options: any = {}) => {
+export const effect = (fn: Function, options: anyObjectType = {}) => {
   const _effect = new ReactiveEffect(fn, options.scheduler)
   extend(_effect, options)
   _effect.run()

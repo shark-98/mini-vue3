@@ -1,12 +1,12 @@
 import { isArray, isObject, isString } from "../shared/index";
-import { anyObjectType, rootContainerType } from "../types/index";
+import { anyObjectType, instanceType, rootContainerType, vnodeType } from "../types/index";
 import { createComponentInstance, setupComponent } from "./component";
 
-export function render(vnode: any, container: rootContainerType) {
+export function render(vnode: vnodeType, container: rootContainerType) {
   patch(vnode, container)
 }
 
-function patch(vnode: any, container: rootContainerType) {
+function patch(vnode: vnodeType, container: rootContainerType) {
   const { type } = vnode;
 
   if (isString(type)) {
@@ -16,20 +16,20 @@ function patch(vnode: any, container: rootContainerType) {
   }
 }
 
-function processComponent(vnode: any, container: rootContainerType) {
+function processComponent(vnode: vnodeType, container: rootContainerType) {
   mountComponent(vnode, container)
 }
-function mountComponent(initialVNode: any, container: rootContainerType) {
+function mountComponent(initialVNode: vnodeType, container: rootContainerType) {
   const instance = createComponentInstance(initialVNode)
 
   setupComponent(instance)
   setupRenderEffect(instance, initialVNode, container)
 }
 
-function processElement(vnode: any, container: rootContainerType) {
+function processElement(vnode: vnodeType, container: rootContainerType) {
   mountElement(vnode, container)
 }
-function mountElement(vnode: any, container: rootContainerType) {
+function mountElement(vnode: vnodeType, container: rootContainerType) {
   const { type, children, props } = vnode;
   const el = vnode.el = document.createElement(type);
   setElementProps(el, props);
@@ -52,7 +52,7 @@ function setElementChildren(el: HTMLElement, children: [] | string) {
   }
 }
 
-function setupRenderEffect(instance: any, initialVNode: any, container: rootContainerType) {
+function setupRenderEffect(instance: instanceType, initialVNode: vnodeType, container: rootContainerType) {
   const subTree = instance.render.call(instance.proxy)
 
   // vnode -> patch

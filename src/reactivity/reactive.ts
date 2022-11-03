@@ -1,18 +1,19 @@
+import { anyObjectType } from "../types/index";
 import { reactiveHandler, readonlyHandler, shallowReadonlyHandler } from "./baseHandlers"
 
-function createReactiveObject(target: any, handler: any) {
+function createReactiveObject(target: anyObjectType, handler: any) {
   return new Proxy(target, handler);
 }
 
-export const reactive = (row: any) => {
+export const reactive = (row: anyObjectType) => {
   return createReactiveObject(row, reactiveHandler);
 }
 
-export const readonly = (row: any) => {
+export const readonly = (row: anyObjectType) => {
   return createReactiveObject(row, readonlyHandler);
 }
 
-export const shallowReadonly = (row: any) => {
+export const shallowReadonly = (row: anyObjectType) => {
   return createReactiveObject(row, shallowReadonlyHandler);
 }
 

@@ -1,11 +1,12 @@
-import { hasChange, isObject } from "../shared"
+import { hasChange, isObject } from "../shared/index"
+import { effectDepsType } from "../types/index"
 import { trackEffect, triggerEffect, isTracking } from "./effect"
 import { reactive } from "./reactive"
 
 
-class RefImpl {
+export class RefImpl {
   private _value: any
-  private _dep: any
+  private _dep: effectDepsType
   private _rawValue: any
   private __v_isRef: boolean
   constructor(value: any) {

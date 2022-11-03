@@ -1,9 +1,10 @@
-import { extend, isObject } from "../shared"
+import { extend, isObject } from "../shared/index"
+import { anyObjectType } from "../types/index"
 import { track, trigger } from "./effect"
 import { reactive, ReactiveFlags, readonly } from "./reactive"
 
 function createGetter(isReadonly = false, shallow = false) {
-  return (target: any, key: any) => {
+  return (target: anyObjectType, key: string) => {
     if (key === ReactiveFlags.IS_REACTIVE) {
       return !isReadonly
     }
@@ -31,7 +32,7 @@ function createGetter(isReadonly = false, shallow = false) {
 }
 
 function createSetter() {
-  return (target: any, key: any, value: any) => {
+  return (target: anyObjectType, key: string, value: any) => {
     const res = Reflect.set(target, key, value)
 
     // 依赖触发trigger
@@ -52,7 +53,7 @@ export const reactiveHandler = {
 }
 export const readonlyHandler = {
   get: readonlyGet,
-  set(target: any, key: any) {
+  set(target: anyObjectType, key: string) {
     console.warn(`key: ${key} set Error, because target is readonly`)
     return true
   }

@@ -1,16 +1,20 @@
+import { anyObjectType, instanceType, vnodeType } from "../types/index"
 import { PublicInstanceProxyHandlers } from "./componentPublicInstance"
 
-export function createComponentInstance(vnode: any) {
-  const component = {
+export function createComponentInstance(vnode: vnodeType) {
+  const component: instanceType = {
     vnode,
     type: vnode.type,
-    el: null
+    el: null,
+    proxy: null,
+    setupState: {},
+    render: () => { }
   }
 
   return component
 }
 
-export function setupComponent(instance: any) {
+export function setupComponent(instance: instanceType) {
   // TODO:
   // initProps()
   // initSlots()
@@ -18,7 +22,7 @@ export function setupComponent(instance: any) {
   setupStatefulComponent(instance)
 }
 
-function setupStatefulComponent(instance: any) {
+function setupStatefulComponent(instance: instanceType) {
   const component = instance.type
   const { setup } = component
 
@@ -31,7 +35,7 @@ function setupStatefulComponent(instance: any) {
   }
 }
 
-function handleSetupResult(instance: any, setupResult: any) {
+function handleSetupResult(instance: instanceType, setupResult: anyObjectType) {
   // TODO:
   // function
 
@@ -43,7 +47,7 @@ function handleSetupResult(instance: any, setupResult: any) {
   finishComponentSetup(instance)
 }
 
-function finishComponentSetup(instance: any) {
+function finishComponentSetup(instance: instanceType) {
   const component = instance.type
 
   instance.render = component.render
