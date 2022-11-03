@@ -19,11 +19,11 @@ function patch(vnode: any, container: rootContainerType) {
 function processComponent(vnode: any, container: rootContainerType) {
   mountComponent(vnode, container)
 }
-function mountComponent(vnode: any, container: rootContainerType) {
-  const instance = createComponentInstance(vnode)
+function mountComponent(initialVNode: any, container: rootContainerType) {
+  const instance = createComponentInstance(initialVNode)
 
   setupComponent(instance)
-  setupRenderEffect(instance, container)
+  setupRenderEffect(instance, initialVNode, container)
 }
 
 function processElement(vnode: any, container: rootContainerType) {
@@ -31,7 +31,7 @@ function processElement(vnode: any, container: rootContainerType) {
 }
 function mountElement(vnode: any, container: rootContainerType) {
   const { type, children, props } = vnode;
-  const el = document.createElement(type);
+  const el = vnode.el = document.createElement(type);
   setElementProps(el, props);
   setElementChildren(el, children);
 
@@ -52,10 +52,12 @@ function setElementChildren(el: HTMLElement, children: [] | string) {
   }
 }
 
-function setupRenderEffect(instance: any, container: rootContainerType) {
-  const subTree = instance.render()
+function setupRenderEffect(instance: any, initialVNode: any, container: rootContainerType) {
+  const subTree = instance.render.call(instance.proxy)
 
   // vnode -> patch
   patch(subTree, container)
+
+  initialVNode.el = subTree.el
 }
 
