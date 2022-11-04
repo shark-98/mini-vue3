@@ -1,4 +1,4 @@
-import { isArray, isObject, isString } from "../shared/index";
+import { ShapeFlags } from "../shared/ShapeFlags";
 import { anyObjectType, instanceType, rootContainerType, vnodeType } from "../types/index";
 import { createComponentInstance, setupComponent } from "./component";
 
@@ -7,11 +7,9 @@ export function render(vnode: vnodeType, container: rootContainerType) {
 }
 
 function patch(vnode: vnodeType, container: rootContainerType) {
-  const { type } = vnode;
-
-  if (isString(type)) {
+  if (vnode.shapeFlag & ShapeFlags.ELEMENT) {
     processElement(vnode, container)
-  } else if (isObject(type)) {
+  } else if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
     processComponent(vnode, container)
   }
 }
@@ -33,7 +31,7 @@ function mountElement(vnode: vnodeType, container: rootContainerType) {
   const { type, children, props } = vnode;
   const el = vnode.el = document.createElement(type);
   setElementProps(el, props);
-  setElementChildren(el, children);
+  setElementChildren(vnode, el, children);
 
   (container as HTMLElement).append(el);
 }
@@ -44,10 +42,10 @@ function setElementProps(el: HTMLElement, props: anyObjectType) {
     }
   }
 }
-function setElementChildren(el: HTMLElement, children: [] | string) {
-  if (isString(children)) {
+function setElementChildren(vnode: vnodeType, el: HTMLElement, children: [] | string) {
+  if (vnode.shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.innerText = children as string
-  } else if (isArray(children)) {
+  } else if (vnode.shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
     (children as []).forEach(v => patch(v, el))
   }
 }
