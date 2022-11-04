@@ -9,6 +9,12 @@ export const App = {
       {
         id: "root",
         class: ["red", "hard"],
+        onClick: () => {
+          console.log(`click`)
+        },
+        onMouseDown: () => {
+          console.log(`mousedown`)
+        },
       },
       [
         h("p", { class: "red" }, "hi"),

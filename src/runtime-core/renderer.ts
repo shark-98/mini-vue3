@@ -36,9 +36,16 @@ function mountElement(vnode: vnodeType, container: rootContainerType) {
   (container as HTMLElement).append(el);
 }
 function setElementProps(el: HTMLElement, props: anyObjectType) {
-  for (const p in props) {
-    if (Object.prototype.hasOwnProperty.call(props, p)) {
-      el.setAttribute(p, props[p])
+  for (const key in props) {
+    if (Object.prototype.hasOwnProperty.call(props, key)) {
+      const val = props[key]
+      const isOn = (name: string) => /^on[A-Z]/.test(name)
+      if (isOn(key)) {
+        const event = key.slice(2).toLocaleLowerCase()
+        el.addEventListener(event, val)
+      } else {
+        el.setAttribute(key, val)
+      }
     }
   }
 }
