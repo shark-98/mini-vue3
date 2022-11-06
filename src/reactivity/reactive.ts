@@ -1,7 +1,14 @@
+import { isObject } from "../shared/index";
 import { anyObjectType } from "../types/index";
 import { reactiveHandler, readonlyHandler, shallowReadonlyHandler } from "./baseHandlers"
 
 function createReactiveObject(target: anyObjectType, handler: any) {
+  if (!isObject(target)) {
+    console.warn(`target ${target} 必须是一个对象`);
+    return target
+  }
+
+
   return new Proxy(target, handler);
 }
 

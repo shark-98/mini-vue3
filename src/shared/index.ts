@@ -13,3 +13,5 @@ export const isArray = (val: any) => {
 export const hasChange = (newValue: any, value: any) => {
   return !Object.is(newValue, value)
 }
+
+export const hasOwn = (obj: any, key: string) => Object.prototype.hasOwnProperty.call(obj, key)

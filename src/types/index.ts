@@ -16,4 +16,4 @@ export type instanceType =
   &
   Pick<vnodeType, 'type' | 'el'>
   &
-  { proxy: any | null, setupState: anyObjectType, render: Function }
+  { proxy: any | null, setupState: anyObjectType, render: Function, props: anyObjectType }
