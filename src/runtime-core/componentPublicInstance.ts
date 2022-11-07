@@ -2,7 +2,8 @@ import { hasOwn } from "../shared/index"
 import { anyObjectType, instanceType } from "../types/index"
 
 const publicPropertiesMap: anyObjectType = {
-  '$el': (i: instanceType) => i.vnode.el
+  '$el': (i: instanceType) => i.vnode.el,
+  '$slots': (i: instanceType) => i.slots
 }
 
 export const PublicInstanceProxyHandlers = {

@@ -3,6 +3,7 @@ import { anyObjectType, instanceType, vnodeType } from "../types/index"
 import { emit } from "./componentEmit"
 import { initProps } from "./componentProps"
 import { PublicInstanceProxyHandlers } from "./componentPublicInstance"
+import { initSlots } from "./componentSlots"
 
 export function createComponentInstance(vnode: vnodeType) {
   const component: instanceType = {
@@ -13,7 +14,8 @@ export function createComponentInstance(vnode: vnodeType) {
     setupState: {},
     render: () => { },
     props: {},
-    emit: () => {}
+    emit: () => { },
+    slots: {}
   }
 
   component.emit = emit.bind(null, component)
@@ -23,8 +25,7 @@ export function createComponentInstance(vnode: vnodeType) {
 
 export function setupComponent(instance: instanceType) {
   initProps(instance, instance.vnode.props)
-  // TODO:
-  // initSlots()
+  initSlots(instance, instance.vnode.children)
 
   setupStatefulComponent(instance)
 }
