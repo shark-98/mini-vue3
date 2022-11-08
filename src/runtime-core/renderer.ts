@@ -1,17 +1,41 @@
 import { ShapeFlags } from "../shared/ShapeFlags";
 import { anyObjectType, instanceType, rootContainerType, vnodeType } from "../types/index";
 import { createComponentInstance, setupComponent } from "./component";
+import { Fragment, Text } from "./vnode";
 
 export function render(vnode: vnodeType, container: rootContainerType) {
   patch(vnode, container)
 }
 
 function patch(vnode: vnodeType, container: rootContainerType) {
-  if (vnode.shapeFlag & ShapeFlags.ELEMENT) {
-    processElement(vnode, container)
-  } else if (vnode.shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-    processComponent(vnode, container)
+  const { type, shapeFlag } = vnode;
+
+  switch (type) {
+    case Fragment:
+      processFragment(vnode, container);
+      break;
+    case Text:
+      processText(vnode, container);
+      break;
+
+    default:
+      if (shapeFlag & ShapeFlags.ELEMENT) {
+        processElement(vnode, container);
+      } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+        processComponent(vnode, container);
+      }
+      break;
   }
+}
+
+function processText(vnode: any, container: any) {
+  const { children } = vnode;
+  const textNode = (vnode.el = document.createTextNode(children));
+  container.append(textNode);
+}
+
+function processFragment(vnode: any, container: any) {
+  mountChildren(vnode, container);
 }
 
 function processComponent(vnode: vnodeType, container: rootContainerType) {
@@ -35,6 +59,9 @@ function mountElement(vnode: vnodeType, container: rootContainerType) {
 
   (container as HTMLElement).append(el);
 }
+function mountChildren(vnode: vnodeType, container: rootContainerType) {
+  (vnode.children as []).forEach(v => patch(v, container))
+}
 function setElementProps(el: HTMLElement, props: anyObjectType) {
   for (const key in props) {
     if (Object.prototype.hasOwnProperty.call(props, key)) {
@@ -53,7 +80,7 @@ function setElementChildren(vnode: vnodeType, el: HTMLElement, children: [] | st
   if (vnode.shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.innerText = children as string
   } else if (vnode.shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-    (children as []).forEach(v => patch(v, el))
+    mountChildren(vnode, el)
   }
 }
 

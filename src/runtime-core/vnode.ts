@@ -2,6 +2,9 @@ import { isArray, isString } from "../shared/index";
 import { ShapeFlags } from "../shared/ShapeFlags";
 import { vnodeType } from "../types/index"
 
+export const Fragment = Symbol("Fragment");
+export const Text = Symbol("Text");
+
 export function createVNode(type: any, props?: any, children?: any) {
   const vnode: vnodeType = {
     type,
@@ -24,6 +27,10 @@ export function createVNode(type: any, props?: any, children?: any) {
   }
 
   return vnode
+}
+
+export function createTextVNode(text: string) {
+  return createVNode(Text, {}, text);
 }
 
 const getShapeFlag = (type: any) => {
