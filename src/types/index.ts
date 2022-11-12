@@ -17,3 +17,8 @@ export type instanceType =
   Pick<vnodeType, 'type' | 'el'>
   &
   { proxy: any | null, setupState: anyObjectType, render: Function, props: anyObjectType, emit: Function, slots: anyObjectType, provides: any, parent: instanceType | null }
+export type renderType = {
+  createElement: (type: any) => any,
+  patchProp: (el: any, key: any, value: any) => void,
+  insert: (el: any, parent: any) => void,
+}
