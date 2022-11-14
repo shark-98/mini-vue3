@@ -3,46 +3,47 @@ import { anyObjectType, instanceType, renderType, rootContainerType, vnodeType }
 import { createComponentInstance, setupComponent } from "./component";
 import { Fragment, Text } from "./vnode";
 import { createAppAPI } from "./createApp";
+import { effect } from "../reactivity";
 export function createRenderer(option: renderType) {
   const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert } = option || {}
 
   function render(vnode: vnodeType, container: rootContainerType) {
-    patch(vnode, container, null)
+    patch(null, vnode, container, null)
   }
 
-  function patch(vnode: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
-    const { type, shapeFlag } = vnode;
+  function patch(n1: vnodeType | null, n2: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
+    const { type, shapeFlag } = n2;
 
     switch (type) {
       case Fragment:
-        processFragment(vnode, container, parentComponent);
+        processFragment(n1, n2, container, parentComponent);
         break;
       case Text:
-        processText(vnode, container);
+        processText(n1, n2, container);
         break;
 
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
-          processElement(vnode, container, parentComponent);
+          processElement(n1, n2, container, parentComponent);
         } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-          processComponent(vnode, container, parentComponent);
+          processComponent(n1, n2, container, parentComponent);
         }
         break;
     }
   }
 
-  function processText(vnode: any, container: any) {
-    const { children } = vnode;
-    const textNode = (vnode.el = document.createTextNode(children));
+  function processText(n1: any, n2: any, container: any) {
+    const { children } = n2;
+    const textNode = (n2.el = document.createTextNode(children));
     container.append(textNode);
   }
 
-  function processFragment(vnode: any, container: any, parentComponent: instanceType | null) {
-    mountChildren(vnode, container, parentComponent);
+  function processFragment(n1: any, n2: any, container: any, parentComponent: instanceType | null) {
+    mountChildren(n2, container, parentComponent);
   }
 
-  function processComponent(vnode: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
-    mountComponent(vnode, container, parentComponent)
+  function processComponent(n1: any, n2: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
+    mountComponent(n2, container, parentComponent)
   }
   function mountComponent(initialVNode: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
     const instance = createComponentInstance(initialVNode, parentComponent)
@@ -51,8 +52,12 @@ export function createRenderer(option: renderType) {
     setupRenderEffect(instance, initialVNode, container)
   }
 
-  function processElement(vnode: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
-    mountElement(vnode, container, parentComponent)
+  function processElement(n1: any, n2: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
+    if (!n1) {
+      mountElement(n2, container, parentComponent)
+    } else {
+      patchElement(n1, n2, container)
+    }
   }
   function mountElement(vnode: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
     const { type, children, props } = vnode;
@@ -62,8 +67,12 @@ export function createRenderer(option: renderType) {
 
     hostInsert(el, container);
   }
+  function patchElement(n1: any, n2: vnodeType, container: rootContainerType) {
+    console.log('n1', n1)
+    console.log('n2', n2)
+  }
   function mountChildren(vnode: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
-    (vnode.children as []).forEach(v => patch(v, container, parentComponent))
+    (vnode.children as []).forEach(v => patch(null, v, container, parentComponent))
   }
   function setElementProps(el: HTMLElement, props: anyObjectType) {
     for (const key in props) {
@@ -80,12 +89,24 @@ export function createRenderer(option: renderType) {
   }
 
   function setupRenderEffect(instance: instanceType, initialVNode: vnodeType, container: rootContainerType) {
-    const subTree = instance.render.call(instance.proxy)
+    effect(() => {
+      if (!instance.isMounted) {
+        const subTree = instance.subTree = instance.render.call(instance.proxy)
 
-    // vnode -> patch
-    patch(subTree, container, instance)
+        // vnode -> patch
+        patch(null, subTree, container, instance)
 
-    initialVNode.el = subTree.el
+        initialVNode.el = subTree.el
+
+        instance.isMounted = true
+      } else {
+        const prevSubTree = instance.subTree
+        const subTree = instance.render.call(instance.proxy)
+        instance.subTree = subTree
+        patch(prevSubTree, subTree, container, instance)
+      }
+    })
+
   }
 
   return {

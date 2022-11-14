@@ -16,7 +16,7 @@ export type instanceType =
   &
   Pick<vnodeType, 'type' | 'el'>
   &
-  { proxy: any | null, setupState: anyObjectType, render: Function, props: anyObjectType, emit: Function, slots: anyObjectType, provides: any, parent: instanceType | null }
+  { proxy: any | null, setupState: anyObjectType, render: Function, props: anyObjectType, emit: Function, slots: anyObjectType, provides: any, parent: instanceType | null, isMounted: boolean, subTree: vnodeType | null }
 export type renderType = {
   createElement: (type: any) => any,
   patchProp: (el: any, key: any, value: any) => void,
