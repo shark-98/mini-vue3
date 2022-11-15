@@ -19,6 +19,6 @@ export type instanceType =
   { proxy: any | null, setupState: anyObjectType, render: Function, props: anyObjectType, emit: Function, slots: anyObjectType, provides: any, parent: instanceType | null, isMounted: boolean, subTree: vnodeType | null }
 export type renderType = {
   createElement: (type: any) => any,
-  patchProp: (el: any, key: any, value: any) => void,
+  patchProp: (el: any, key: any, oldVal: any, newVal: any) => void,
   insert: (el: any, parent: any) => void,
 }

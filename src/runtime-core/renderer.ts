@@ -4,6 +4,7 @@ import { createComponentInstance, setupComponent } from "./component";
 import { Fragment, Text } from "./vnode";
 import { createAppAPI } from "./createApp";
 import { effect } from "../reactivity";
+import { hasOwn, hasValueObject } from "../shared";
 export function createRenderer(option: renderType) {
   const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert } = option || {}
 
@@ -70,6 +71,34 @@ export function createRenderer(option: renderType) {
   function patchElement(n1: any, n2: vnodeType, container: rootContainerType) {
     console.log('n1', n1)
     console.log('n2', n2)
+
+    const el = n2.el = n1.el
+
+    const prevProps = n1.props || {}
+    const nextProps = n2.props || {}
+    patchProps(el, prevProps, nextProps)
+  }
+  function patchProps(el: HTMLElement, prevProps: any, nextProps: any) {
+    if (prevProps === nextProps) {
+      return
+    }
+
+    for (const key in nextProps) {
+      if (hasOwn(nextProps, key) && prevProps[key] !== nextProps[key]) {
+        hostPatchProp(el, key, prevProps[key], nextProps[key])
+      }
+    }
+
+    if (!hasValueObject(prevProps)) {
+      return
+    }
+    for (const key in prevProps) {
+      if (hasOwn(prevProps, key) && !(key in nextProps)) {
+        hostPatchProp(el, key, prevProps[key], null)
+      }
+    }
+
+
   }
   function mountChildren(vnode: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
     (vnode.children as []).forEach(v => patch(null, v, container, parentComponent))
@@ -77,7 +106,7 @@ export function createRenderer(option: renderType) {
   function setElementProps(el: HTMLElement, props: anyObjectType) {
     for (const key in props) {
       const val = props[key]
-      hostPatchProp(el, key, val)
+      hostPatchProp(el, key, null, val)
     }
   }
   function setElementChildren(vnode: vnodeType, el: HTMLElement, children: [] | string, parentComponent: instanceType | null) {

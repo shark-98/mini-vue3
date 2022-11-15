@@ -3,6 +3,9 @@ export const extend = Object.assign
 export const isObject = (val: any) => {
   return val !== null && typeof val === 'object'
 }
+export const hasValueObject = (val: any) => {
+  return !!(isObject(val) && Object.keys(val).length)
+}
 export const isString = (val: any) => {
   return typeof val === 'string'
 }
