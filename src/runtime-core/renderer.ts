@@ -6,7 +6,7 @@ import { createAppAPI } from "./createApp";
 import { effect } from "../reactivity";
 import { hasOwn, hasValueObject } from "../shared";
 export function createRenderer(option: renderType) {
-  const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert } = option || {}
+  const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert, remove: hostRemove, setElementText: hostSetElementText } = option || {}
 
   function render(vnode: vnodeType, container: rootContainerType) {
     patch(null, vnode, container, null)
@@ -40,7 +40,7 @@ export function createRenderer(option: renderType) {
   }
 
   function processFragment(n1: any, n2: any, container: any, parentComponent: instanceType | null) {
-    mountChildren(n2, container, parentComponent);
+    mountChildren(n2.children, container, parentComponent);
   }
 
   function processComponent(n1: any, n2: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
@@ -57,7 +57,7 @@ export function createRenderer(option: renderType) {
     if (!n1) {
       mountElement(n2, container, parentComponent)
     } else {
-      patchElement(n1, n2, container)
+      patchElement(n1, n2, container, parentComponent)
     }
   }
   function mountElement(vnode: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
@@ -68,7 +68,7 @@ export function createRenderer(option: renderType) {
 
     hostInsert(el, container);
   }
-  function patchElement(n1: any, n2: vnodeType, container: rootContainerType) {
+  function patchElement(n1: any, n2: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
     console.log('n1', n1)
     console.log('n2', n2)
 
@@ -77,6 +77,31 @@ export function createRenderer(option: renderType) {
     const prevProps = n1.props || {}
     const nextProps = n2.props || {}
     patchProps(el, prevProps, nextProps)
+    patchChildren(n1, n2, el, parentComponent)
+  }
+  function patchChildren(n1: vnodeType, n2: vnodeType, el: HTMLElement, parentComponent: instanceType | null) {
+    const { shapeFlag: prevShapeFlag, children: prevChildren } = n1
+    const { shapeFlag: nextShapeFlag, children: nextChildren } = n2
+
+    if (nextShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        unmountChildren(prevChildren)
+      }
+      if (prevChildren !== nextChildren) {
+        hostSetElementText(el, nextChildren as string)
+      }
+    } else {
+      if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+        hostSetElementText(el, '')
+        mountChildren(nextChildren as [], el, parentComponent)
+      }
+    }
+  }
+  function unmountChildren(children: any) {
+    for (let i = 0; i < children.length; i++) {
+      const el = children[i].el
+      hostRemove(el)
+    }
   }
   function patchProps(el: HTMLElement, prevProps: any, nextProps: any) {
     if (prevProps === nextProps) {
@@ -100,8 +125,8 @@ export function createRenderer(option: renderType) {
 
 
   }
-  function mountChildren(vnode: vnodeType, container: rootContainerType, parentComponent: instanceType | null) {
-    (vnode.children as []).forEach(v => patch(null, v, container, parentComponent))
+  function mountChildren(children: [], container: rootContainerType, parentComponent: instanceType | null) {
+    (children || []).forEach(v => patch(null, v, container, parentComponent))
   }
   function setElementProps(el: HTMLElement, props: anyObjectType) {
     for (const key in props) {
@@ -113,7 +138,7 @@ export function createRenderer(option: renderType) {
     if (vnode.shapeFlag & ShapeFlags.TEXT_CHILDREN) {
       el.innerText = children as string
     } else if (vnode.shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-      mountChildren(vnode, el, parentComponent)
+      mountChildren(vnode.children as [], el, parentComponent)
     }
   }
 

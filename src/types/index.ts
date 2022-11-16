@@ -21,4 +21,6 @@ export type renderType = {
   createElement: (type: any) => any,
   patchProp: (el: any, key: any, oldVal: any, newVal: any) => void,
   insert: (el: any, parent: any) => void,
+  remove: (child: any) => void,
+  setElementText: (el: HTMLElement, text: string) => void,
 }
