@@ -9,7 +9,8 @@ export type vnodeType = {
   props: anyObjectType,
   children: [] | string,
   el: HTMLElement | null,
-  shapeFlag: ShapeFlags
+  shapeFlag: ShapeFlags,
+  key: any,
 }
 export type instanceType =
   { vnode: vnodeType }
@@ -20,7 +21,7 @@ export type instanceType =
 export type renderType = {
   createElement: (type: any) => any,
   patchProp: (el: any, key: any, oldVal: any, newVal: any) => void,
-  insert: (el: any, parent: any) => void,
+  insert: (child: any, parent: any, anchor: HTMLElement | null) => void,
   remove: (child: any) => void,
   setElementText: (el: HTMLElement, text: string) => void,
 }
