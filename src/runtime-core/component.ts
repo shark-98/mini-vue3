@@ -10,6 +10,8 @@ export function createComponentInstance(vnode: vnodeType, parentComponent: insta
   const component: instanceType = {
     vnode,
     type: vnode.type,
+    next: null,
+    update: () => {},
     el: null,
     proxy: null,
     setupState: {},

@@ -3,7 +3,8 @@ import { anyObjectType, instanceType } from "../types/index"
 
 const publicPropertiesMap: anyObjectType = {
   '$el': (i: instanceType) => i.vnode.el,
-  '$slots': (i: instanceType) => i.slots
+  '$slots': (i: instanceType) => i.slots,
+  '$props': (i: instanceType) => i.props,
 }
 
 export const PublicInstanceProxyHandlers = {

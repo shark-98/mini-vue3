@@ -5,6 +5,7 @@ import { Fragment, Text } from "./vnode";
 import { createAppAPI } from "./createApp";
 import { effect } from "../reactivity";
 import { hasOwn, hasValueObject } from "../shared";
+import { shouldUpdateComponent } from "./componentUpdateUtils";
 export function createRenderer(option: renderType) {
   const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert, remove: hostRemove, setElementText: hostSetElementText } = option || {}
 
@@ -44,13 +45,31 @@ export function createRenderer(option: renderType) {
   }
 
   function processComponent(n1: any, n2: vnodeType, container: rootContainerType, parentComponent: instanceType | null, anchor: HTMLElement | null) {
-    mountComponent(n2, container, parentComponent, anchor)
+    if (!n1) {
+      mountComponent(n2, container, parentComponent, anchor)
+    } else {
+      updateComponent(n1, n2)
+    }
   }
   function mountComponent(initialVNode: vnodeType, container: rootContainerType, parentComponent: instanceType | null, anchor: HTMLElement | null) {
-    const instance = createComponentInstance(initialVNode, parentComponent)
+    const instance = (initialVNode.component = createComponentInstance(
+      initialVNode,
+      parentComponent
+    ));
 
     setupComponent(instance)
     setupRenderEffect(instance, initialVNode, container, anchor)
+  }
+
+  function updateComponent(n1: vnodeType, n2: vnodeType) {
+    const instance = (n2.component = n1.component)!;
+    if (shouldUpdateComponent(n1, n2)) {
+      instance.next = n2;
+      instance.update();
+    } else {
+      n2.el = n1.el;
+      instance.vnode = n2;
+    }
   }
 
   function processElement(n1: any, n2: vnodeType, container: rootContainerType, parentComponent: instanceType | null, anchor: HTMLElement | null) {
@@ -274,7 +293,7 @@ export function createRenderer(option: renderType) {
   }
 
   function setupRenderEffect(instance: instanceType, initialVNode: vnodeType, container: rootContainerType, anchor: HTMLElement | null) {
-    effect(() => {
+    instance.update = effect(() => {
       if (!instance.isMounted) {
         const subTree = instance.subTree = instance.render.call(instance.proxy)
 
@@ -285,6 +304,13 @@ export function createRenderer(option: renderType) {
 
         instance.isMounted = true
       } else {
+        const { next, vnode } = instance;
+        if (next) {
+          next.el = vnode.el;
+
+          updateComponentPreRender(instance, next);
+        }
+
         const prevSubTree = instance.subTree
         const subTree = instance.render.call(instance.proxy)
         instance.subTree = subTree
@@ -297,6 +323,13 @@ export function createRenderer(option: renderType) {
   return {
     createApp: createAppAPI(render),
   }
+}
+
+function updateComponentPreRender(instance: instanceType, nextVNode: vnodeType) {
+  instance.vnode = nextVNode;
+  instance.next = null;
+
+  instance.props = nextVNode.props;
 }
 
 function getSequence(arr: number[]) {
