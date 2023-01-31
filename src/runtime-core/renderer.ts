@@ -6,6 +6,7 @@ import { createAppAPI } from "./createApp";
 import { effect } from "../reactivity";
 import { hasOwn, hasValueObject } from "../shared";
 import { shouldUpdateComponent } from "./componentUpdateUtils";
+import { queueJobs } from "./scheduler";
 export function createRenderer(option: renderType) {
   const { createElement: hostCreateElement, patchProp: hostPatchProp, insert: hostInsert, remove: hostRemove, setElementText: hostSetElementText } = option || {}
 
@@ -153,7 +154,7 @@ export function createRenderer(option: renderType) {
       e1--
       e2--
     }
-    console.log(`i: ${i}, e1: ${e1}, e2: ${e2}`)
+    // console.log(`i: ${i}, e1: ${e1}, e2: ${e2}`)
 
     // 新的比老的长 —— 创建
     if (i > e1) {
@@ -304,6 +305,8 @@ export function createRenderer(option: renderType) {
 
         instance.isMounted = true
       } else {
+        console.log('update-component');
+
         const { next, vnode } = instance;
         if (next) {
           next.el = vnode.el;
@@ -316,8 +319,13 @@ export function createRenderer(option: renderType) {
         instance.subTree = subTree
         patch(prevSubTree, subTree, container, instance, anchor)
       }
-    })
-
+    },
+      {
+        scheduler() {
+          queueJobs(instance.update)
+        }
+      }
+    )
   }
 
   return {
