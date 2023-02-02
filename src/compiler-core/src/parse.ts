@@ -15,7 +15,10 @@ interface interpolationType extends nodeType {
 interface elementType extends nodeType {
   tag: string
 }
-type childrenItemType = interpolationType | elementType
+interface textType extends nodeType {
+  content: contentType
+}
+type childrenItemType = interpolationType | elementType | textType
 type childrenType = Array<childrenItemType>
 type rootType = { children: childrenType }
 
@@ -29,6 +32,7 @@ const parseChildren = (context: contextType): childrenType => {
 
   let node: childrenItemType | undefined
   const s = context.source
+
   if (s.startsWith(openDelimiter)) {
     node = parseInterpolation(context);
   } else if (s[0] === '<') {
@@ -37,10 +41,13 @@ const parseChildren = (context: contextType): childrenType => {
     }
   }
 
+  if (!node) {
+    node = parseText(context);
+  }
+
   if (node) {
     nodes.push(node);
   }
-
 
   return nodes;
 }
@@ -54,10 +61,10 @@ const parseInterpolation = (context: contextType): interpolationType => {
 
   const rawContentLength = closeIndex - openDelimiter.length;
 
-  const rawContent = context.source.slice(0, rawContentLength);
+  const rawContent = parseTextData(context, rawContentLength)
   const content = rawContent.trim()
 
-  advanceBy(context, rawContentLength + closeDelimiter.length);
+  advanceBy(context, closeDelimiter.length);
 
   return {
     type: NodeTypes.INTERPOLATION,
@@ -105,5 +112,21 @@ function parseTag(context: contextType, type: TagType): elementType | undefined 
       tag,
     }
   }
+}
+
+function parseText(context: contextType): textType | undefined {
+  const content = parseTextData(context, context.source.length)
+
+  return {
+    type: NodeTypes.Text,
+    content,
+  }
+}
+
+function parseTextData(context: contextType, length: number): contentType {
+  const content = context.source.slice(0, length)
+  advanceBy(context, length)
+
+  return content
 }
 
