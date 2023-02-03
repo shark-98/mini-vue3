@@ -2,12 +2,15 @@ export const enum NodeTypes {
   INTERPOLATION,
   SIMPLE_EXPRESSION,
   ELEMENT,
-  Text
+  TEXT
 }
 export const enum TagType {
-  Start,
-  End,
+  START,
+  END,
 }
 
 export const openDelimiter = '{{'
 export const closeDelimiter = '}}'
+export const startTag = '<'
+export const closeTag = '>'
+export const endTag = '</'

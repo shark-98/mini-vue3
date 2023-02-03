@@ -1,4 +1,4 @@
-import { closeDelimiter, NodeTypes, openDelimiter, TagType } from "./ast"
+import { closeDelimiter, closeTag, endTag, NodeTypes, openDelimiter, startTag, TagType } from "./ast"
 
 type contentType = string
 type contextType = {
@@ -13,7 +13,8 @@ interface interpolationType extends nodeType {
   }
 }
 interface elementType extends nodeType {
-  tag: string
+  tag: string,
+  children: Array<elementType | interpolationType | textType>
 }
 interface textType extends nodeType {
   content: contentType
@@ -24,30 +25,33 @@ type rootType = { children: childrenType }
 
 export const baseParse = (content: contentType): rootType => {
   const context: contextType = createParserContext(content);
-  return createRoot(parseChildren(context));
+  const result = createRoot(parseChildren(context, []));
+
+  return result
 }
 
-const parseChildren = (context: contextType): childrenType => {
+const parseChildren = (context: contextType, tags: elementType['tag'][]): childrenType => {
   const nodes: childrenType = [];
 
-  let node: childrenItemType | undefined
-  const s = context.source
+  while (!isEnd(context, tags)) {
+    let node: childrenItemType | undefined
+    const s = context.source
 
-  if (s.startsWith(openDelimiter)) {
-    node = parseInterpolation(context);
-  } else if (s[0] === '<') {
-    if (/[a-z]/i.test(s[1])) {
-      node = parseElement(context);
+    if (s.startsWith(openDelimiter)) {
+      node = parseInterpolation(context);
+    } else if (s[0] === startTag) {
+      if (/[a-z]/i.test(s[1])) {
+        node = parseElement(context, tags);
+      }
+    } else {
+      node = parseText(context);
+    }
+
+    if (node) {
+      nodes.push(node);
     }
   }
 
-  if (!node) {
-    node = parseText(context);
-  }
-
-  if (node) {
-    nodes.push(node);
-  }
 
   return nodes;
 }
@@ -88,37 +92,59 @@ const createParserContext = (content: contentType): contextType => {
 const advanceBy = (context: contextType, length: number) => {
   context.source = context.source.slice(length);
 }
-function parseElement(context: contextType): elementType | undefined {
-  const element = parseTag(context, TagType.Start)
-  parseTag(context, TagType.End)
-
+function parseElement(context: contextType, tags: elementType['tag'][]): elementType | undefined {
+  const element = parseTag(context, TagType.START)
   if (element) {
-    return element
+    tags.push(element.tag)
+    element.children = parseChildren(context, tags);
+    tags.pop()
+
+    if (startsWithEndTagOpen(context.source, element.tag)) {
+      parseTag(context, TagType.END);
+    } else {
+      throw new Error(`缺少结束标签:${element.tag}`);
+    }
   }
+
+  return element
 }
 
 function parseTag(context: contextType, type: TagType): elementType | undefined {
-  const match = /^<\/?([a-z]*)/i.exec(context.source)
+  const reg = new RegExp(`^${startTag}\/?([a-z]*)`, 'i')
+  const match = reg.exec(context.source)
+
   let tag = ''
   if (match) {
     tag = match[1]
     advanceBy(context, match[0].length)
-    advanceBy(context, 1);
+    advanceBy(context, closeTag.length);
   }
 
-  if (type === TagType.Start) {
+  if (type === TagType.START) {
     return {
       type: NodeTypes.ELEMENT,
       tag,
+      children: []
     }
   }
 }
 
 function parseText(context: contextType): textType | undefined {
-  const content = parseTextData(context, context.source.length)
+  const endToken = [openDelimiter, startTag]
+  const s = context.source
+  let endIndex = s.length
+  for (let i = 0; i < endToken.length; i++) {
+    const item = endToken[i];
+    const index = s.indexOf(item)
+    if (index !== -1 && endIndex > index) {
+      endIndex = index
+    }
+  }
+
+  const content = parseTextData(context, endIndex)
 
   return {
-    type: NodeTypes.Text,
+    type: NodeTypes.TEXT,
     content,
   }
 }
@@ -130,3 +156,25 @@ function parseTextData(context: contextType, length: number): contentType {
   return content
 }
 
+function isEnd(context: contextType, tags: elementType['tag'][]) {
+  const s = context.source
+
+  if (s.startsWith(endTag)) {
+    for (let i = tags.length - 1; i >= 0; i--) {
+      const tag = tags[i];
+      if (startsWithEndTagOpen(s, tag)) {
+        return true;
+      }
+    }
+  }
+
+  return !s
+}
+
+
+function startsWithEndTagOpen(source: string, tag: elementType['tag']) {
+  return (
+    source.startsWith(endTag) &&
+    source.slice(endTag.length, endTag.length + tag.length).toLowerCase() === tag.toLowerCase()
+  );
+}
