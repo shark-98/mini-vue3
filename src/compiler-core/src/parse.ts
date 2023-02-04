@@ -1,27 +1,4 @@
-import { closeDelimiter, closeTag, endTag, NodeTypes, openDelimiter, startTag, TagType } from "./ast"
-
-type contentType = string
-type contextType = {
-  source: contentType
-}
-interface nodeType {
-  type: NodeTypes,
-}
-interface interpolationType extends nodeType {
-  content: nodeType & {
-    content: contentType
-  }
-}
-interface elementType extends nodeType {
-  tag: string,
-  children: Array<elementType | interpolationType | textType>
-}
-interface textType extends nodeType {
-  content: contentType
-}
-type childrenItemType = interpolationType | elementType | textType
-type childrenType = Array<childrenItemType>
-type rootType = { children: childrenType }
+import { childrenItemType, childrenType, closeDelimiter, closeTag, contentType, contextType, elementType, endTag, interpolationType, NodeTypes, openDelimiter, rootType, startTag, TagType, textType } from "./ast"
 
 export const baseParse = (content: contentType): rootType => {
   const context: contextType = createParserContext(content);

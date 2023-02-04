@@ -9,6 +9,40 @@ export const enum TagType {
   END,
 }
 
+// parse
+export type contentType = string
+export type contextType = {
+  source: contentType
+}
+export interface nodeType {
+  type: NodeTypes,
+}
+export interface interpolationType extends nodeType {
+  content: nodeType & {
+    content: contentType
+  }
+}
+export interface elementType extends nodeType {
+  tag: string,
+  children: Array<elementType | interpolationType | textType>
+}
+export interface textType extends nodeType {
+  content: contentType
+}
+export type childrenItemType = interpolationType | elementType | textType
+export type childrenType = Array<childrenItemType>
+export type rootType = { children: childrenType }
+export type allChildrenType = rootType | childrenItemType
+
+// transform
+export type nodeTransformsType = Function[]
+export type transformOptions = {
+  nodeTransforms: nodeTransformsType
+}
+export type transformContext = {
+  root: rootType
+} & transformOptions
+
 export const openDelimiter = '{{'
 export const closeDelimiter = '}}'
 export const startTag = '<'
