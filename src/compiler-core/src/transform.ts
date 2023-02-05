@@ -1,8 +1,9 @@
 import { allChildrenType, rootType, transformContext, transformOptions } from "./ast";
 
-export const transform = (root: rootType, options: transformOptions) => {
+export const transform = (root: rootType, options: transformOptions = {}) => {
   const context: transformContext = createTransformContext(root, options)
   traverseNode(root, context);
+  createCodegenNode(root)
 };
 
 function createTransformContext(root: rootType, options: transformOptions): transformContext {
@@ -16,6 +17,9 @@ function createTransformContext(root: rootType, options: transformOptions): tran
 
 function traverseNode(node: allChildrenType, context: transformContext) {
   const nodeTransforms = context.nodeTransforms
+  if (!(Array.isArray(nodeTransforms) && nodeTransforms.length)) {
+    return
+  }
 
   for (let i = 0; i < nodeTransforms.length; i++) {
     const transform = nodeTransforms[i];
@@ -35,5 +39,9 @@ const traverseChildren = (node: allChildrenType, context: transformContext) => {
     const node = children[i];
     traverseNode(node, context);
   }
+}
+
+function createCodegenNode(root: rootType) {
+  root.codegenNode = root.children[0]
 }
 

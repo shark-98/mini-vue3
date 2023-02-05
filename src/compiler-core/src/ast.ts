@@ -31,17 +31,23 @@ export interface textType extends nodeType {
 }
 export type childrenItemType = interpolationType | elementType | textType
 export type childrenType = Array<childrenItemType>
-export type rootType = { children: childrenType }
+export type rootType = { children: childrenType, codegenNode?: childrenItemType }
 export type allChildrenType = rootType | childrenItemType
 
 // transform
 export type nodeTransformsType = Function[]
 export type transformOptions = {
-  nodeTransforms: nodeTransformsType
+  nodeTransforms?: nodeTransformsType
 }
 export type transformContext = {
   root: rootType
 } & transformOptions
+
+// generate
+export type codegenContextType = {
+  code: string,
+  push: (source: string) => void
+}
 
 export const openDelimiter = '{{'
 export const closeDelimiter = '}}'
