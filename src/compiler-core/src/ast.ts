@@ -2,7 +2,8 @@ export const enum NodeTypes {
   INTERPOLATION,
   SIMPLE_EXPRESSION,
   ELEMENT,
-  TEXT
+  TEXT,
+  ROOT
 }
 export const enum TagType {
   START,
@@ -31,7 +32,7 @@ export interface textType extends nodeType {
 }
 export type childrenItemType = interpolationType | elementType | textType
 export type childrenType = Array<childrenItemType>
-export type rootType = { children: childrenType, codegenNode?: childrenItemType }
+export type rootType = { type: NodeTypes.ROOT, children: childrenType, codegenNode?: childrenItemType, helpers?: any[] }
 export type allChildrenType = rootType | childrenItemType
 
 // transform
@@ -40,13 +41,16 @@ export type transformOptions = {
   nodeTransforms?: nodeTransformsType
 }
 export type transformContext = {
-  root: rootType
+  root: rootType,
+  helpers: Map<string, number>,
+  helper(key: any): void
 } & transformOptions
 
 // generate
 export type codegenContextType = {
   code: string,
   push: (source: string) => void
+  helper(key: any): string
 }
 
 export const openDelimiter = '{{'

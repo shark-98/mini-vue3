@@ -58,7 +58,8 @@ const parseInterpolation = (context: contextType): interpolationType => {
 
 const createRoot = (children: childrenType): rootType => {
   return {
-    children
+    children,
+    type: NodeTypes.ROOT
   };
 }
 const createParserContext = (content: contentType): contextType => {
