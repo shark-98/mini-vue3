@@ -1,4 +1,4 @@
-import { allChildrenType, NodeTypes, rootType, transformContext, transformOptions } from "./ast";
+import { allChildrenType, NodeTypes, rootType, transformContext, transformOptions, elementType } from './ast';
 import { TO_DISPLAY_STRING } from "./runtimeHelpers";
 
 export const transform = (root: rootType, options: transformOptions = {}) => {
@@ -24,10 +24,12 @@ function createTransformContext(root: rootType, options: transformOptions): tran
 
 function traverseNode(node: allChildrenType, context: transformContext) {
   const nodeTransforms = context.nodeTransforms
+  const exitFns: any = [];
   if ((Array.isArray(nodeTransforms) && nodeTransforms.length)) {
     for (let i = 0; i < nodeTransforms.length; i++) {
       const transform = nodeTransforms[i];
-      transform(node)
+      const onExit = transform(node, context);
+      if (onExit) exitFns.push(onExit);
     }
   }
 
@@ -42,6 +44,11 @@ function traverseNode(node: allChildrenType, context: transformContext) {
 
     default:
       break;
+  }
+
+  let i = exitFns.length;
+  while (i--) {
+    exitFns[i]();
   }
 }
 
@@ -58,6 +65,11 @@ const traverseChildren = (node: allChildrenType, context: transformContext) => {
 }
 
 function createCodegenNode(root: rootType) {
-  root.codegenNode = root.children[0]
+  const child = root.children[0];
+  if (child.type === NodeTypes.ELEMENT) {
+    root.codegenNode = (child as elementType).codegenNode;
+  } else {
+    root.codegenNode = child;
+  }
 }
 

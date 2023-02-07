@@ -1,9 +1,12 @@
+import { CREATE_ELEMENT_VNODE } from "./runtimeHelpers";
+
 export const enum NodeTypes {
   INTERPOLATION,
   SIMPLE_EXPRESSION,
   ELEMENT,
   TEXT,
-  ROOT
+  ROOT,
+  COMPOUND_EXPRESSION,
 }
 export const enum TagType {
   START,
@@ -23,16 +26,23 @@ export interface interpolationType extends nodeType {
     content: contentType
   }
 }
+export type elementCodegenNodeType = {
+  type: NodeTypes.ELEMENT,
+  tag: elementType['tag'],
+  props: any,
+  children: any,
+}
 export interface elementType extends nodeType {
   tag: string,
-  children: Array<elementType | interpolationType | textType>
+  children: Array<elementType | interpolationType | textType>,
+  codegenNode?: elementCodegenNodeType
 }
 export interface textType extends nodeType {
   content: contentType
 }
 export type childrenItemType = interpolationType | elementType | textType
 export type childrenType = Array<childrenItemType>
-export type rootType = { type: NodeTypes.ROOT, children: childrenType, codegenNode?: childrenItemType, helpers?: any[] }
+export type rootType = { type: NodeTypes.ROOT, children: childrenType, codegenNode?: childrenItemType | elementType['codegenNode'], helpers?: any[] }
 export type allChildrenType = rootType | childrenItemType
 
 // transform
@@ -58,3 +68,14 @@ export const closeDelimiter = '}}'
 export const startTag = '<'
 export const closeTag = '>'
 export const endTag = '</'
+
+export function createVNodeCall(context: transformContext, tag: elementCodegenNodeType['tag'], props: elementCodegenNodeType['props'], children: elementCodegenNodeType['children']): elementCodegenNodeType {
+  context.helper(CREATE_ELEMENT_VNODE);
+
+  return {
+    type: NodeTypes.ELEMENT,
+    tag,
+    props,
+    children,
+  };
+}

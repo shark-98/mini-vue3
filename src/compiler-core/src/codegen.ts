@@ -1,12 +1,12 @@
-import { childrenItemType, codegenContextType, interpolationType, NodeTypes, rootType, textType } from "./ast";
-import { helperMapName, TO_DISPLAY_STRING } from "./runtimeHelpers";
+import { isString } from "../../shared";
+import { childrenItemType, childrenType, codegenContextType, elementCodegenNodeType, elementType, interpolationType, NodeTypes, rootType, textType } from "./ast";
+import { helperMapName, TO_DISPLAY_STRING, CREATE_ELEMENT_VNODE } from "./runtimeHelpers";
 
 export const codegen = (root: rootType) => {
   const context = createCodegenContext()
   const { push } = context;
 
   genFunctionPreamble(root, context);
-
 
   const functionName = 'render'
   const args = ['_ctx', '_cache']
@@ -53,12 +53,57 @@ function genNode(node: childrenItemType | undefined, context: codegenContextType
     case NodeTypes.SIMPLE_EXPRESSION:
       genExpression((node as interpolationType), context);
       break;
+    case NodeTypes.ELEMENT:
+      genElement((node as elementCodegenNodeType), context);
+      break;
+    case NodeTypes.COMPOUND_EXPRESSION:
+      genCompoundExpression((node as elementCodegenNodeType), context);
+      break;
 
     default:
       break;
   }
+}
 
+function genCompoundExpression(node: elementCodegenNodeType, context: codegenContextType) {
+  const { push } = context;
+  const children = node.children;
+  for (let i = 0; i < children.length; i++) {
+    const child = children[i];
+    if (isString(child)) {
+      push(child);
+    } else {
+      genNode(child, context);
+    }
+  }
+}
 
+function genElement(node: elementCodegenNodeType, context: codegenContextType) {
+  const { push, helper } = context;
+  const { tag, children, props } = node;
+  push(`${helper(CREATE_ELEMENT_VNODE)}(`);
+  genNodeList(genNullable([tag, props, children]), context);
+  push(")");
+}
+function genNodeList(nodes: any, context: codegenContextType) {
+  const { push } = context;
+
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+    if (isString(node)) {
+      push(node);
+    } else {
+      genNode(node, context);
+    }
+
+    if (i < nodes.length - 1) {
+      push(", ")
+    }
+  }
+}
+
+function genNullable(args: any[]) {
+  return args.map((arg) => arg || "null");
 }
 
 function genText(node: textType, context: codegenContextType) {
@@ -83,8 +128,7 @@ function genFunctionPreamble(ast: rootType, context: codegenContextType) {
   const { push } = context;
   const VueBinging = "Vue";
   const aliasHelper = (s: string) => `${helperMapName[s]}:_${helperMapName[s]}`;
-  console.log(ast);
-  
+
   if (ast.helpers!.length > 0) {
     push(
       `const { ${ast.helpers!.map(aliasHelper).join(", ")} } = ${VueBinging}`
