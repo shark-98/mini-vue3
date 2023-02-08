@@ -11,7 +11,7 @@ export function createComponentInstance(vnode: vnodeType, parentComponent: insta
     vnode,
     type: vnode.type,
     next: null,
-    update: () => {},
+    update: () => { },
     el: null,
     proxy: null,
     setupState: {},
@@ -67,9 +67,17 @@ function handleSetupResult(instance: instanceType, setupResult: anyObjectType) {
   finishComponentSetup(instance)
 }
 
+let compiler: Function
+export function registerRuntimeCompiler(_compiler: Function) {
+  compiler = _compiler;
+}
+
 function finishComponentSetup(instance: instanceType) {
   const component = instance.type
 
+  if (!component.render && compiler && component.template) {
+    component.render = compiler(component.template)
+  }
   instance.render = component.render
 }
 

@@ -296,7 +296,7 @@ export function createRenderer(option: renderType) {
   function setupRenderEffect(instance: instanceType, initialVNode: vnodeType, container: rootContainerType, anchor: HTMLElement | null) {
     instance.update = effect(() => {
       if (!instance.isMounted) {
-        const subTree = instance.subTree = instance.render.call(instance.proxy)
+        const subTree = instance.subTree = instance.render.call(instance.proxy, instance.proxy)
 
         // vnode -> patch
         patch(null, subTree, container, instance, anchor)
@@ -315,7 +315,7 @@ export function createRenderer(option: renderType) {
         }
 
         const prevSubTree = instance.subTree
-        const subTree = instance.render.call(instance.proxy)
+        const subTree = instance.render.call(instance.proxy, instance.proxy)
         instance.subTree = subTree
         patch(prevSubTree, subTree, container, instance, anchor)
       }
