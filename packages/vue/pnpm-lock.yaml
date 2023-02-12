@@ -1,0 +1,9 @@
+lockfileVersion: 5.3
+
+specifiers:
+  '@mini-vue/compiler-core': workspace:^1.0.0
+  '@mini-vue/runtime-dom': workspace:^1.0.0
+
+dependencies:
+  '@mini-vue/compiler-core': link:../compiler-core
+  '@mini-vue/runtime-dom': link:../runtime-dom

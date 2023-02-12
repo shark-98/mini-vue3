@@ -1,0 +1,9 @@
+lockfileVersion: 5.3
+
+specifiers:
+  '@mini-vue/shared': workspace:^1.0.0
+  '@mini-vue/types': workspace:^1.0.0
+
+dependencies:
+  '@mini-vue/shared': link:../shared
+  '@mini-vue/types': link:../types
